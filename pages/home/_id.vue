@@ -4,6 +4,7 @@
     <PropertyDetails :home="home"/>
     <PropertyDescription :home="home" />
     <PropertyMap :home="home" />
+    <div style="height:800px;widht:800px" ref="map"></div>
     <PropertyReviews :reviews="reviews"/>
     <PropertyHost :user="user" />
   </div>
@@ -20,6 +21,10 @@ export default {
     return { 
       title: this.home.title
     }
+  },
+
+  mounted(){
+    this.$maps.showMap(this.$refs.map, this.home._geoloc.lat, this.home._geoloc.lng)
   },
 
   async asyncData({params, $dataApi, error}) {

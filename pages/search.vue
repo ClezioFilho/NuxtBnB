@@ -3,15 +3,69 @@
     <div class="app-search-results">
       <div class="app-search-results-listing">
         <h2 class="app-title">Stays in {{ label }} </h2>
+
+        <div v-if="homes.length > 0">
+          <nuxt-link v-for="home in homes" :key="home.objectID" :to="`/home/${home.objectID}`">
+            <HomeRow :home="home"/>
+          </nuxt-link>
+        </div>
+
+        <div v-else>
+          No Results Found
+        </div>
       </div>
     </div>
 
-    <div class="app-search-results-map"></div>
+    <div class="app-search-results-map">
+      <div style="height:800px;widht:800px;" ref="map"></div>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
+  head(){
+    return {
+      title: `Homes around ${this.label}`
+    }
+  },
 
+  mounted(){
+    this.updateMap()
+  },
+
+  methods:{
+    updateMap(){
+      this.$maps.showMap(this.$refs.map, this.lat, this.lng, this.getHomeMarkers())
+    },
+
+    getHomeMarkers(){
+      return this.homes.map((home) => {
+        return{
+          ...home._geoloc,
+        }
+      })
+    }
+  },
+
+  async beforeRouteUpdate(to, from, next){
+    const data = await this.$dataApi.getHomesByLocation(to.query.lat, to.query.lng)
+    this.homes = data.json.hits
+    this.label = to.query.label
+    this.lat = to.query.lat
+    this.lng = to.query.lng
+    this.updateMap()
+    next()
+  },
+
+  async asyncData({ query, $dataApi }){
+    const data = await $dataApi.getHomesByLocation(query.lat, query.lng)
+    return {
+      homes: data.json.hits,
+      label: query.label,
+      lat: query.lat,
+      lng: query.lng,
+    }
+  }
 }
 </script>
